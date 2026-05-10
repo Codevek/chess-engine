@@ -1,0 +1,1 @@
+it's a basic js chess-engine 
