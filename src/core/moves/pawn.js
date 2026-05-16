@@ -50,7 +50,7 @@ export function getPawnMoves(board, pRow, pCol, piece) {
     }
   }
   
-  console.log(piece);
+  // console.log(piece);
   return moves;
 }
 

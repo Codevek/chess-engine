@@ -1,3 +1,6 @@
+
+// THIS IS WORKING MECHANISM, BUT CREATING SOME UNKNOWN ISSUES SO, USED THE BEST VERSION INSTEAD
+
 export function getRookMoves(board, pRow, pCol, piece) {
   const moves = [];
   // const rowDir = -1 | 1;
@@ -90,7 +93,7 @@ export function getRookMoves(board, pRow, pCol, piece) {
 
 
   
-  console.log(piece);
+  // console.log(piece);
   return moves;
 }
 
@@ -100,3 +103,53 @@ export function getRookMoves(board, pRow, pCol, piece) {
 //   2,
 //   parseFEN("8/4Q3/pPb5/RP4p1/1K2p3/5PP1/2R1q3/2br3k w - - 0 1")[6][2]
 // );
+
+
+
+// import { parseFEN } from "../fen.js";
+// import { isInsideBoard } from "../utils.js";
+
+// export function getRookMoves(board, pRow, pCol, piece) {
+//   const moves = [];
+//   const direction = [
+//     [-1, 0], //top
+//     [1, 0], //bottom
+//     [0, 1], //right
+//     [0, -1], //left
+//   ];
+
+//   for (const [rowDir, colDir] of direction) {
+//     let pNewRow = pRow + rowDir;
+//     let pNewCol = pCol + colDir;
+
+    
+//     //emptySquare
+//     while (isInsideBoard(pNewRow, pNewCol)) {
+//       const target = board[pNewRow][pNewCol];
+//       if (target === null) { //empty square
+//         moves.push({
+//           from: [pRow, pCol],
+//           to: [pNewRow, pNewCol],
+//         });
+//       }
+
+//       else if (target.color !== piece.color){ //enemy piece
+//         moves.push({
+//           from: [pRow, pCol],
+//           to: [pNewRow, pNewCol],
+//         });
+//         break
+//       }
+
+//       else{ // friendly piece
+//         break
+//       }
+
+//       pNewRow += rowDir
+//       pNewCol += colDir
+//     }
+//   }
+//   // console.log(moves);
+
+//   return moves;
+// }

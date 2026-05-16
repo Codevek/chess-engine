@@ -33,7 +33,7 @@ export function getKnightMoves(board, pRow, pCol, piece) {
       });
     }
   }
-  console.log(moves);
+  // console.log(moves);
 
   return moves;
 }

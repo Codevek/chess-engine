@@ -33,7 +33,6 @@ export function getKingMoves(board, pRow, pCol, piece) {
       });
     }
   }
-//   console.log(moves);
 
   return moves;
 }
