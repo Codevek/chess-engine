@@ -15,6 +15,18 @@ export class Chess {
     this.board = parseFEN(fen);
 
     this.turn = fen.split(" ")[1];
+
+    this.castlingRights = {
+      w: {
+        kingSide: true,
+        queenSide: true,
+      },
+
+      b: {
+        kingSide: true,
+        queenSide: true,
+      },
+    };
   }
 
   getBoard() {
@@ -75,6 +87,35 @@ export class Chess {
         piece.type = "q";
       }
     }
+
+    //removingCastlingRights
+    if (piece.type === "k") {
+      this.castlingRights[piece.color].kingSide = false;
+      this.castlingRights[piece.color].queenSide = false;
+    }
+
+    if (piece.type === "r") {
+      //whiteSIde
+      if (piece.color === "w") {
+        if (fromRow === 7 && fromCol === 0) {
+          this.castlingRights.w.queenSide = false;
+        }
+        if (fromRow === 7 && fromCol === 7) {
+          this.castlingRights.w.kingSide = false;
+        }
+      }
+      //blackSide
+      else {
+        if (fromRow === 0 && fromCol === 0) {
+          this.castlingRights[b].queenSide = false;
+        }
+        if (fromRow === 0 && fromCol === 7) {
+          this.castlingRights[b].kingSide = false;
+        }
+      }
+    }
+    console.log(this.castlingRights);
+    
 
     return true;
   }
