@@ -1,6 +1,7 @@
 import { Color, Piece } from "../types/piece.js";
 import { PieceType } from "../types/piece.js";
 import { Chess } from "./game.js";
+import { getNotation } from "./utils.js";
 
 export function parseFEN(fen) {
   const [boardPart = ""] = fen.split(" ");
@@ -37,38 +38,56 @@ export function parseFEN(fen) {
 // // // console.log(!newboard[4][4]); //this means wheather its null or not (true ==  null  or false == !null(i.e some piece is there))
 // console.log(newboard[6][1]);
 
-export function generateFEN(board) {
-  const fenArr = [];
-  let nullCount = 0;
-  let pType;
-  let mtSpace = 0
-  for (let i = 0; i < board.length; i++) {
-    nullCount = 0;
-    pType = "";
-    for (let j = 0; j < board[i].length; j++) {
-      const piece = board[i][j];
-      if (piece === null) {
-        nullCount += 1;
-      } else {
-        // mtSpace += nullCount
-        nullCount = 0;
-        if (piece.color === "w") {
-          pType += piece.type.toUpperCase();
-        } else {
-          pType += piece.type;
+export function generateFEN(game) {
+  const board = game.getBoard();
+  const turn = game.getTurn();
+  const castlingRights = game.castlingRights;
+  const enPassantTarget = game.enPassantTarget
+
+  let fen = "";
+  const rows = [];
+  for (const row of board) {
+    let fenRow = "";
+    let mtCount = 0;
+    for (const piece of row) {
+      if (piece === null) mtCount++;
+      else {
+        if (mtCount > 0) {
+          fenRow += mtCount;
+          mtCount = 0;
         }
-        // continue
+        let symbol = piece.type;
+        if (piece.color === "w") {
+          symbol = symbol.toUpperCase();
+        }
+        fenRow += symbol;
       }
     }
-    console.log(mtSpace);
-    
-    // var req
-    // req+= nullCount
-    // req += pType
-    // console.log(req);
-    
+    if (mtCount > 0) {
+      fenRow += mtCount;
+    }
+    rows.push(fenRow);
   }
+  fen += rows.join("/");
+  fen += " " + turn + " ";
+  if (castlingRights !== null) {
+    if (castlingRights.w.kingSide === true) fen += "K";
+    if (castlingRights.w.queenSide === true) fen += "Q";
+    if (castlingRights.b.kingSide === true) fen += "k";
+    if (castlingRights.b.queenSide === true) fen += "q";
+  }
+  else{
+    fen += "-"
+  }
+
+  if(enPassantTarget){
+    fen+= " "+ getNotation(enPassantTarget)
+  }
+
+  console.log(fen);
+
+  return rows.join("/");
 }
 
-const game = new Chess("8/5P1q/6p1/3k2P1/R2pp3/P1bP2N1/1p6/1K1nQ3 w - - 0 1");
-generateFEN(game.getBoard());
+const game = new Chess("rnbqkbnr/pp3ppp/8/2pPp3/8/4p3/PPP2PPP/RNBQKBNR w KQkq e6 0 1");
+generateFEN(game);

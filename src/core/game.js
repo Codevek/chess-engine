@@ -16,17 +16,22 @@ export class Chess {
 
     this.turn = fen.split(" ")[1];
 
-    this.castlingRights = {
-      w: {
-        kingSide: true,
-        queenSide: true,
-      },
+    const castleSide = fen.split(" ")[2];
+    if (castleSide === "-") {
+      this.castlingRights = null;
+    } else {
+      this.castlingRights = {
+        w: {
+          kingSide: castleSide.includes("K") ? true:false,
+          queenSide: castleSide.includes("Q") ? true:false,
+        },
 
-      b: {
-        kingSide: true,
-        queenSide: true,
-      },
-    };
+        b: {
+          kingSide: castleSide.includes("k") ? true:false,
+          queenSide: castleSide.includes("q") ? true:false,
+        },
+      };
+    }
     const epField = fen.split(" ")[3];
 
     if (epField === "-") {
@@ -42,6 +47,10 @@ export class Chess {
 
   getBoard() {
     return this.board;
+  }
+
+  getTurn() {
+    return this.turn;
   }
 
   getMovesForPiece(pRow, pCol, includeCastle = true) {
