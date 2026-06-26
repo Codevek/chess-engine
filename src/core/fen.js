@@ -42,7 +42,7 @@ export function generateFEN(game) {
   const board = game.getBoard();
   const turn = game.getTurn();
   const castlingRights = game.castlingRights;
-  const enPassantTarget = game.enPassantTarget
+  const enPassantTarget = game.enPassantTarget;
 
   let fen = "";
   const rows = [];
@@ -75,19 +75,24 @@ export function generateFEN(game) {
     if (castlingRights.w.queenSide === true) fen += "Q";
     if (castlingRights.b.kingSide === true) fen += "k";
     if (castlingRights.b.queenSide === true) fen += "q";
-  }
-  else{
-    fen += "-"
+  } else {
+    fen += "-";
   }
 
-  if(enPassantTarget){
-    fen+= " "+ getNotation(enPassantTarget)
+  if (enPassantTarget) {
+    fen += " " + getNotation(enPassantTarget);
   }
+  else fen += " "+"-"
+
+  fen += " " + game.halfMoveClock;
+  fen += " " + game.fullMoveNumber;
 
   console.log(fen);
 
-  return rows.join("/");
+  return fen;
 }
 
-const game = new Chess("rnbqkbnr/pp3ppp/8/2pPp3/8/4p3/PPP2PPP/RNBQKBNR w KQkq e6 0 1");
-generateFEN(game);
+// const game = new Chess(
+//   "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
+// );
+// generateFEN(game);

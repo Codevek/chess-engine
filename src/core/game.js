@@ -13,6 +13,7 @@ const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 export class Chess {
   constructor(fen = START_FEN) {
     this.board = parseFEN(fen);
+    this.history = [];
 
     this.turn = fen.split(" ")[1];
 
@@ -22,13 +23,13 @@ export class Chess {
     } else {
       this.castlingRights = {
         w: {
-          kingSide: castleSide.includes("K") ? true:false,
-          queenSide: castleSide.includes("Q") ? true:false,
+          kingSide: castleSide.includes("K") ? true : false,
+          queenSide: castleSide.includes("Q") ? true : false,
         },
 
         b: {
-          kingSide: castleSide.includes("k") ? true:false,
-          queenSide: castleSide.includes("q") ? true:false,
+          kingSide: castleSide.includes("k") ? true : false,
+          queenSide: castleSide.includes("q") ? true : false,
         },
       };
     }
@@ -43,6 +44,10 @@ export class Chess {
 
       this.enPassantTarget = [8 - rank, file];
     }
+
+    const fields = fen.split(" ");
+    this.halfMoveClock = Number(fields[4]);
+    this.fullMoveNumber = Number(fields[5]);
   }
 
   getBoard() {
@@ -87,6 +92,22 @@ export class Chess {
     const [toRow, toCol] = moveMade.to;
 
     const piece = this.board[fromRow][fromCol];
+    const capturedPiece = this.board[toRow][toCol];
+
+    const historyEntry = {
+      move: structuredClone(moveMade),
+      movedPiece: structuredClone(piece),
+      capturedPiece: structuredClone(capturedPiece),
+      previousCastlingRights: structuredClone(this.castlingRights),
+
+      previousEnPassant: structuredClone(this.enPassantTarget),
+
+      previousHalfMoveClock: this.halfMoveClock,
+
+      previousFullMoveNumber: this.fullMoveNumber,
+    };
+    this.history.push(historyEntry);
+
     if (!piece) return false;
 
     //piece2NewPosition
@@ -95,6 +116,16 @@ export class Chess {
     this.board[fromRow][fromCol] = null;
     //changeTurn
     this.turn = this.turn === "w" ? "b" : "w";
+
+    let enPassantCapturedPiece = null;
+
+    if (moveMade.enPassant) {
+      if (piece.color === "w") {
+        enPassantCapturedPiece = structuredClone(this.board[toRow + 1][toCol]);
+      } else {
+        enPassantCapturedPiece = structuredClone(this.board[toRow - 1][toCol]);
+      }
+    }
 
     //enPassant capture removal
     if (moveMade.enPassant) {
@@ -171,6 +202,17 @@ export class Chess {
       this.enPassantTarget = null;
     }
 
+    //halfMove nd fullMove updation
+    if (piece.type === "p" || capturedPiece !== null) {
+      this.halfMoveClock = 0;
+    } else {
+      this.halfMoveClock++;
+    }
+
+    if (piece.color === "b") {
+      this.fullMoveNumber++;
+    }
+
     return true;
   }
 
@@ -239,8 +281,10 @@ export class Chess {
     for (const move of pseudoMoves) {
       const boardBackup = structuredClone(this.board);
       const turnBackup = this.turn;
-      const castlingBackup = this.castlingRights;
+      const castlingBackup = structuredClone(this.castlingRights);
       const enPassantBackup = structuredClone(this.enPassantTarget);
+      const halfMoveBackup = this.halfMoveClock;
+      const fullMoveBackup = this.fullMoveNumber;
 
       //analyse or xpected move to check the legality
       this.makeMove(move);
@@ -253,12 +297,15 @@ export class Chess {
       this.turn = turnBackup;
       this.castlingRights = castlingBackup;
       this.enPassantTarget = enPassantBackup;
+      this.halfMoveClock = halfMoveBackup;
+      this.fullMoveNumber = fullMoveBackup;
     }
     return legalMoves;
   }
 
-  getAllLegalMoves(color) {
+  getAllLegalMoves() {
     const allLegalMoves = [];
+    const color = this.turn;
 
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
@@ -292,5 +339,53 @@ export class Chess {
     }
     const legalMoves = this.getAllLegalMoves(color);
     return legalMoves.length === 0;
+  }
+
+  undoMove() {
+    const historyEntry = this.history.pop();
+    if (!historyEntry) return false;
+
+    const { move, movedPiece, capturedPiece } = historyEntry;
+
+    const [fromRow, fromCol] = move.from;
+    const [toRow, toCol] = move.to;
+
+    this.board[fromRow][fromCol] = movedPiece;
+    this.board[toRow][toCol] = capturedPiece;
+
+    if (move.castle === "w-kingSide") {
+      this.board[7][7] = this.board[7][5];
+      this.board[7][5] = null;
+    }
+    if (move.castle === "w-queenSide") {
+      this.board[7][0] = this.board[7][3];
+      this.board[7][3] = null;
+    }
+    if (move.castle === "b-kingSide") {
+      this.board[0][7] = this.board[0][5];
+      this.board[0][5] = null;
+    }
+    if (move.castle === "b-queenSide") {
+      this.board[0][0] = this.board[0][3];
+      this.board[0][3] = null;
+    }
+
+    if (move.enPassant) {
+      if (movedPiece.color === "w") {
+        this.board[toRow + 1][toCol] = historyEntry.enPassantCapturedPiece;
+      } else {
+        this.board[toRow - 1][toCol] = historyEntry.enPassantCapturedPiece;
+      }
+    }
+
+    this.turn = movedPiece.color;
+
+    this.castlingRights = historyEntry.previousCastlingRights;
+
+    this.enPassantTarget = historyEntry.previousEnPassant;
+
+    this.halfMoveClock = historyEntry.previousHalfMoveClock;
+
+    this.fullMoveNumber = historyEntry.previousFullMoveNumber;
   }
 }
