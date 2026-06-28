@@ -1,24 +1,21 @@
 import { generateFEN } from "./core/fen.js";
 import { Chess } from "./core/game.js";
+import readline from "node:readline/promises";
 
 const game = new Chess();
 
-console.table(game.getBoard());
-game.makeMove({
-    from: [6,4],
-    to: [4,4]
-})
-console.table(game.getBoard());
-game.undoMove();
-console.table(game.getBoard());
-// console.log(game.getLegalMoves(4,2));
+for (let i = 0; i < 50; i++) {
+  console.table(game.getBoard());
+  const moves = game.getAllLegalMoves();
+  console.log(moves);
 
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
 
-
-// const moves2 = game.getLegalMoves(3, 4);
-// console.log(moves2);
-
-// console.table(game.getBoard());
-// console.table(game.getBoard());
-// const moves2 = game.getLegalMoves(7,4)
-// console.log(moves2);
+  const answer = await rl.question("Make ur move?");
+  game.makeMove(moves[answer]);
+  console.log(generateFEN(game));
+  rl.close(); // Remember to close the stream to exit the process
+}
